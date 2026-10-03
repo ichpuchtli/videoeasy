@@ -10,8 +10,8 @@ comparison, because a lower-precision build is a different model.
 
 | Job | Model | Served by | Settings that matter |
 |---|---|---|---|
-| Shot and window annotation; picture-vs-words judge; cover verifier | `google/gemma-4-26b-a4b` (Q8) | LM Studio, OpenAI-compatible `:1234/v1` | `--context-length 16384`; `max_tokens` 6000 with one retry at double; temperature 0.3 |
-| Text judge, cover proposer, story model | a 27B Qwen text model (Q8) | Ollama `/api/chat` | `think: false`, `format: json`, `num_ctx` 32768–40000, temperature 0.2–0.3 |
+| Shot and window annotation; picture-vs-words judge; cover verifier | `google/gemma-4-26b-a4b` (GGUF Q8_0) | LM Studio, OpenAI-compatible `:1234/v1` | `--context-length 16384`; `max_tokens` 6000 with one retry at double; temperature 0.3 |
+| Text judge, cover proposer, story model, talk analysis | `qwen3.8:27b-mtp-q8_0` (Q8_0, digest `8a1582877303`) | Ollama `/api/chat` | `think: false`, `format: json`, `num_ctx` 32768–40000, temperature 0.2–0.3 |
 | Transcription (sources and renders) | `mlx-community/whisper-large-v3-mlx` | in-process (mlx-whisper) | word timestamps, `condition_on_previous_text=False`, renders chunked per beat |
 | Bird calls heard | BirdNET 2.4 (location + acoustic) | in-process (TFLite) | optional extra `birds` |
 | Plant species on screen | BioCLIP 2 | in-process | optional extra `species`; advisory only |

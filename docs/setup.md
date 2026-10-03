@@ -170,7 +170,7 @@ The model downloads on first use (2.9 GB). To fetch it now instead of in the
 middle of a run:
 
 ```bash
-uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('mlx-community/whisper-large-v3-mlx')"
+uv run python -c "from huggingface_hub import snapshot_download; snapshot_download('mlx-community/whisper-large-v3-mlx', revision='49e6aa286ad60c14352c404340ded53710378a11')"
 ```
 
 check: `uv run python -c "import mlx_whisper; print('ok')"` prints `ok`.
