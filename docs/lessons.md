@@ -565,6 +565,33 @@ measurement and a rule. None of them is a score.
   two-shot holds two people. Without diarisation or editorial speaker labels,
   never report them as speaker balance.
 
+### 5.12 32-bit float recordings clip on the way into the transcriber
+
+- Lav recorders writing 32-bit float keep samples above full scale. Whisper's
+  loader converts audio to 16-bit integers, which clips every one of them.
+  The first real chunks measured peaks of +6.0 and +6.7 dBFS (30 and 24
+  over-full-scale samples) on handling bumps.
+- **Rule.** Build one working file per talk with a single linear gain that
+  puts the talk's peak at −1 dBFS (a cut of 7–8 dB on those chunks, a lift
+  of 8 dB on a quiet excerpt), never compressed, and keep a map from talk
+  time back to the original float chunks so every in and out is laid from
+  the originals. **Guard:** `talks prepare` records peak, overs and gain per
+  talk; a test scales a sine above 0 dBFS and checks the working file is
+  unclipped.
+
+### 5.13 Measure room against the noise floor, not the speech level
+
+- The first edge-room rule called "quiet" anything 20 dB under the median
+  speech level. On a real outdoor lav excerpt that threshold sat at
+  −67 dBFS, below a −58 dBFS floor of wind and birds, so all 33 sentence
+  edges measured zero room.
+- **Rule.** Quiet is within 6 dB of the measured noise floor (10th
+  percentile of the envelope). When speech is less than 12 dB above the
+  floor, room is reported as unknown, not as zero. A sentence 10 dB or more
+  under the wearer's median level is flagged off-mic (probably another voice
+  heard by the lav): on that excerpt, 10 of 33 sentences at −43 to −47 dB
+  against −32.6 dB. All provisional until the editor listens.
+
 ---
 
 ## 6. Honest evaluation
@@ -729,6 +756,19 @@ are allowed in a draft, and they are still missing material at delivery.
   goes through the same shape. Freeze, split, hide the labels, write the
   decision rule first, report cost. This is also the template for
   calibrating a new label vocabulary (see `docs/sibling-project.md`).
+
+### 6.13 A cache beside the file writes into the originals
+
+- Large-file digests were cached in a `<name>.sha256` beside each file. The
+  shake and drone-move measurements fingerprint source footage, so one film
+  collected 123 sidecars. They landed beside symlinks only because its
+  inputs were links; a config pointing straight at the footage, or at a
+  cloud-synced folder, would have written into the originals' folder and
+  uploaded with it.
+- **Rule.** Digests are cached under `$VIDEOEASY_CACHE/fingerprints` (default
+  `~/.cache/videoeasy/fingerprints`), keyed on the resolved path and trusted
+  only while size and mtime match. **Guard:** a test fingerprints a large
+  file and asserts its folder is unchanged.
 
 ---
 

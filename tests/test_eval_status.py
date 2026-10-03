@@ -34,6 +34,30 @@ class Fingerprints(unittest.TestCase):
         self.assertNotEqual(a, b)
         self.assertEqual(len(a), 16)
 
+    def test_large_file_digest_is_cached_away_from_the_source_folder(self):
+        # Regression: the cache was a `<name>.sha256` beside each large file, and steadiness/moves fingerprint
+        # source footage, so a config pointing straight at the footage wrote into the originals' folder.
+        import os
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as src, tempfile.TemporaryDirectory() as cache, \
+                mock.patch.object(evalrun, "SIDECAR_MIN_BYTES", 10), mock.patch.dict(os.environ, {"VIDEOEASY_CACHE": cache}):
+            take = Path(src) / "TAKE0001.MOV"
+            take.write_bytes(b"frame" * 100)
+            before = sorted(os.listdir(src))
+            a = evalrun.fingerprint(take)
+            self.assertEqual(sorted(os.listdir(src)), before)                 # nothing written beside the take
+            entries = list((Path(cache) / "fingerprints").glob("*.json"))
+            self.assertEqual(len(entries), 1)
+            self.assertEqual(json.loads(entries[0].read_text())["path"], str(take.resolve()))
+            entry = json.loads(entries[0].read_text())
+            entries[0].write_text(json.dumps({**entry, "sha256": "c" * 64}))
+            self.assertEqual(evalrun.fingerprint(take), "c" * 16)              # read from the cache, not rehashed
+            entries[0].write_text(json.dumps(entry))
+            self.assertEqual(evalrun.fingerprint(take), a)
+            take.write_bytes(b"other" * 100)                                   # size equal, mtime moves on
+            os.utime(take, (1, 1))
+            self.assertNotEqual(evalrun.fingerprint(take), a)
+
     def test_frames_dir_is_keyed_on_render_hash(self):
         with tempfile.TemporaryDirectory() as td:
             d1 = cuteval.frames_dir_for(Path(td), "aaaa")

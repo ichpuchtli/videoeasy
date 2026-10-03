@@ -38,9 +38,10 @@ from .film import Film, film_dir_for, load_film
 from .sources import is_drone, label as source_label, to_camera
 from .evalrun import INVALID, OK, UNCHECKED, bytes_hash, ffprobe_duration, fingerprint, refuse_overwrite, source_hash, text_hash, write_manifest
 from .vlm import chat_vision, extract_json
+from .textmodel import text_model, text_url
 
-OLLAMA_URL = "http://localhost:11434"
-OLLAMA_MODEL = "qwen3.8:27b-mtp-q8_0"
+OLLAMA_URL = text_url()        # VIDEOEASY_TEXT_URL overrides (textmodel.py)
+OLLAMA_MODEL = text_model()    # VIDEOEASY_TEXT_MODEL overrides
 VISION_URL = "http://localhost:1234/v1"
 VISION_MODEL = "google/gemma-4-26b-a4b"
 

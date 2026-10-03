@@ -100,6 +100,7 @@ class Film:
     names: set[str] = field(default_factory=set)
     story: dict = field(default_factory=dict)
     layin: dict = field(default_factory=lambda: dict(DEFAULT_LAYIN))
+    source_path: Path | None = None   # the film.yaml these values came from; None = generic defaults
 
     def role_of(self, base: str) -> Role:
         r = self.clips.get(base)
@@ -118,7 +119,7 @@ def _role(name: str, spec: dict | str) -> Role:
                 bool(spec.get("sync_walk", False)), bool(spec.get("drone", False)))
 
 
-def from_dict(raw: dict, root: Path | None = None) -> Film:
+def from_dict(raw: dict, root: Path | None = None, source_path: Path | None = None) -> Film:
     """A Film from the parsed YAML (or any dict of the same shape)."""
     raw = raw or {}
     roles = {k: _role(k, v) for k, v in raw["roles"].items()} if raw.get("roles") else dict(DEFAULT_ROLES)
@@ -145,23 +146,38 @@ def from_dict(raw: dict, root: Path | None = None) -> Film:
         names={str(n).lower() for n in (raw.get("names") or [])},
         story=dict(raw.get("story") or {}),
         layin=layin,
+        source_path=source_path,
     )
 
 
+def project_profile(item_dir: Path) -> Path | None:
+    """`<project>/film.yaml` for a directory laid out as `<project>/items/<id>/` (an event project's deliverable,
+    see deliverables.py): one event shares one profile instead of a copy per item."""
+    if item_dir.parent.name == "items" and (item_dir.parent.parent / PROFILE_NAME).exists():
+        return item_dir.parent.parent / PROFILE_NAME
+    return None
+
+
 def load_film(film_dir: str | Path | None) -> Film:
-    """The profile of the film at `film_dir`; generic defaults when there is no film.yaml (or no directory)."""
+    """The profile of the film at `film_dir`: its own film.yaml, else (for `<project>/items/<id>/`) the project's,
+    else generic defaults. Relative layin paths always resolve against `film_dir` itself, so an item that borrows the
+    project's profile still renders into its own folder. `Film.source_path` says which file was read."""
     if film_dir is None:
         return from_dict({})
     root = Path(film_dir).resolve()
     p = root / PROFILE_NAME
-    raw = yaml.safe_load(p.read_text(encoding="utf-8")) if p.exists() else {}
-    return from_dict(raw, root)
+    if not p.exists():
+        p = project_profile(root)
+    if p is None or not p.exists():
+        return from_dict({}, root)
+    return from_dict(yaml.safe_load(p.read_text(encoding="utf-8")) or {}, root, p)
 
 
 def film_dir_for(path: str | Path) -> Path | None:
-    """The film directory a path inside it belongs to: the nearest ancestor holding a film.yaml."""
+    """The film directory a path inside it belongs to: the nearest ancestor holding a film.yaml, or an event item
+    directory (`<project>/items/<id>/`) whose project holds one."""
     p = Path(path).resolve()
     for d in [p, *p.parents]:
-        if (d / PROFILE_NAME).exists():
+        if (d / PROFILE_NAME).exists() or project_profile(d):
             return d
     return None

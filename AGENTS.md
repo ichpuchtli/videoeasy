@@ -4,7 +4,11 @@ AI-assisted documentary editing. Local models ingest footage, and only local
 models ever see pixels or hear audio. A frontier model does story work over
 the resulting **footage bible** in a coding-agent session. Films live under
 `data/films/<film>/` (never committed): before any story work, read that
-film's private brief and register reference there.
+film's private brief and register reference there. Event shoots with a shot
+list and many short deliverables live under `data/projects/<project>/`
+(never committed): read its `deliverables.yaml` and `items.yaml` first and
+use the `videoeasy-deliverables` skill. A new machine starts with
+[docs/setup.md](docs/setup.md).
 
 > This file is the single source of agent instructions for this repo.
 > `CLAUDE.md` is a symlink to it, so Claude Code, Codex and anything else that
@@ -13,6 +17,7 @@ film's private brief and register reference there.
 ## Commands
 
 ```bash
+uv run videoeasy doctor                              # machine check, no config: tools, models and servers, Resolve scripting (optional items warn)
 uv run videoeasy check --config config.<film>.yaml   # verify the whole chain BEFORE any run (includes the vision trap test)
 uv run videoeasy all --config config.<film>.yaml     # full ingest: probe → shots → transcribe → segment → frames → motion → annotate → selects → assemble
 uv run videoeasy segment --config ...                # window long takes into searchable moments (out/segments.json)
@@ -31,6 +36,28 @@ uv run python -m videoeasy.steadiness --config ...   # camera shake per catalogu
 uv run python -m videoeasy.moves --config ...        # drone moves and which are clean → out/moves.json
 uv run --extra birds python -m videoeasy.birds --config ...   # BirdNET over source audio → out/birds.json (heard, not seen)
 uv run python -m unittest discover tests             # invariants: no models, no footage, no Resolve
+```
+
+Event projects (`docs/event-projects.md`; `--project data/projects/<project>` on every command):
+
+```bash
+uv run python -m videoeasy.deliverables validate     # check deliverables.yaml and items.yaml
+uv run python -m videoeasy.deliverables plan         # the items each deliverable type implies
+uv run python -m videoeasy.deliverables clocks --config config.<project>.yaml   # per-camera recorded times vs the schedule
+uv run python -m videoeasy.deliverables assign --config config.<project>.yaml   # clips → sessions, feeds and mood candidates → out/sessions.json
+uv run python -m videoeasy.deliverables status [--scope NAME] [--md PATH]       # counts vs the shot list; "claimed, no evidence"
+uv run python -m videoeasy.deliverables set <item> key=value ...                # record a decision or status in items.yaml
+uv run python -m videoeasy.deliverables item-dir <item>                         # items/<item>/ as a film dir: editorial/ + links to the shared out/ and work/
+uv run python -m videoeasy.deliverables bins --config config.<project>.yaml --resolve-project NAME --source-bin PATH [--apply]   # Resolve bins; dry run without --apply
+```
+
+Long talks recorded on lav recorders (`docs/talks.md`; 32-bit float safe, originals never written):
+
+```bash
+uv run python -m videoeasy.talks all --project data/projects/<p> --mic-dir <dir> --session <first chunk> --talk-id <id>   # prepare → transcribe → sentences → beats → bites → verify → report
+uv run python -m videoeasy.talks all ... --skip-model     # measurements and transcript only, no LLM
+uv run python -m videoeasy.talks resolve ... --resolve-project NAME --timeline NAME [--apply]   # selects timeline + markers; dry run by default
+uv run python -m videoeasy.talks export-cut ...           # ranked selects as a cut brollmatch can read
 ```
 
 Waveform sync between lav-mic recordings and camera clips (`transcribe`
@@ -163,8 +190,12 @@ Details: [docs/architecture.md](docs/architecture.md).
 - **Stages are idempotent and resumable.** Re-running skips completed work.
   `--force` on `annotate`/`transcribe` redoes from scratch (use it after a
   prompt or model change).
-- **Never commit film material.** `data/`, `config.<film>.yaml`, `film.yaml`,
-  `.mcp.json`, media and LUTs are git-ignored. Keep it that way.
+- **Never commit film or project material.** `data/` (including
+  `data/films/` and `data/projects/`), `config.<film>.yaml`,
+  `config.<project>.yaml`, `film.yaml`, `.mcp.json`, media and LUTs are
+  git-ignored. Keep it that way. Names of people filmed, shot lists, clients
+  and transcripts never go into code, comments, prompt examples or test
+  fixtures.
 
 ## Repo skills
 
@@ -176,5 +207,6 @@ surfaced to Claude Code through per-skill symlinks in `.claude/skills/`):
 | `videoeasy-ingest` | running or debugging the ingest pipeline, calibrating annotation, changing models or grading |
 | `videoeasy-story-room` | story work over the bible: radio cuts, B-roll matching, beats, the synthesis layer, judging a cut |
 | `videoeasy-resolve` | anything touching the DaVinci Resolve scripting API or MCP |
+| `videoeasy-deliverables` | an event / shot-list project: building `deliverables.yaml`, clocks, session assignment, testimonial bites, tracking items, Resolve bins |
 
 Edit the real files under `.agents/skills/`.

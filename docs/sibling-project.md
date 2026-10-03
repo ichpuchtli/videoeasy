@@ -334,6 +334,15 @@ Never imported by the sibling: `brollmatch`, `cutbuild`, `cuteval`,
 
 ### Milestone 1: sound bites on one long talk
 
+> **Status (Oct 2026).** A first cut of this milestone now lives in videoeasy
+> itself as [`videoeasy.talks`](talks.md), built for an event shoot's lav
+> recordings: chunk joining, float-safe gain, word-timed transcript, sentences
+> with measured room and off-mic flags, LLM beats and candidates with cover
+> briefs, an independent standalone check, selects CSV and a Resolve selects
+> timeline. Not yet built: diarization, pairwise top-20, the editor-rated
+> calibration run, and the exit criteria below. Extract it into the sibling
+> repo when the register work starts.
+
 Input: one 60–90 min talk, single speaker plus an interviewer or audience,
 camera audio or lav. Stages: transcribe → diarize → utterances → candidates →
 gates → rubric → pairwise top 20 → recheck → Resolve selects timeline → the

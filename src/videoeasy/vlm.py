@@ -79,12 +79,12 @@ def extract_json(text: str) -> dict:
 MIN_CONTEXT_TOKENS = 16384
 
 
-def loaded_context_length(url: str, model: str) -> int | None:
+def loaded_context_length(url: str, model: str, timeout: float = 10.0) -> int | None:
     """Context window the model is currently loaded with, or None if the
     server does not expose LM Studio's /api/v0/models endpoint."""
     base = url.rsplit("/v1", 1)[0]
     try:
-        response = httpx.get(f"{base}/api/v0/models", timeout=10.0)
+        response = httpx.get(f"{base}/api/v0/models", timeout=timeout)
         response.raise_for_status()
     except httpx.HTTPError:
         return None

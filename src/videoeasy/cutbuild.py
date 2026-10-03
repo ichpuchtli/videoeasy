@@ -401,6 +401,15 @@ def write_md(cut: dict, out_md: Path, version: int) -> None:
     out_md.write_text("\n".join(L))
 
 
+def unit_source_path(film: Path, unit: dict) -> str:
+    """The file a catalogue unit was cut from: the path the ingest recorded (any layout, any extension), else the old
+    `<film>/inputs/<role>/<source>.MOV` guess, which is wrong for an .MP4 source and for a film whose footage is not
+    linked under inputs/ (an event item directory, for one)."""
+    if unit.get("source_path"):
+        return str(unit["source_path"])
+    return str(film / "inputs" / ("broll" if unit.get("role") == "broll" else "aroll") / (unit["source"] + ".MOV"))
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--film", required=True)
@@ -452,7 +461,7 @@ def main(argv: list[str] | None = None) -> int:
         t0 += sum(a["duration_s"] for a in picks) + beat.get("gap_after_s", 0.0)
         for v in beat["video"]:
             if v["type"] == "video":
-                v["source_path"] = str(film / "inputs" / ("broll" if cat[v["clip"]]["role"] == "broll" else "aroll") / (cat[v["clip"]]["source"] + ".MOV"))
+                v["source_path"] = unit_source_path(film, cat[v["clip"]])
         stats["picks"] += len(rows)
         stats["rows"] += len(beat["video"])
         stats["covered_s"] += sum(v["duration_s"] for v in beat["video"] if v["type"] != "bare")

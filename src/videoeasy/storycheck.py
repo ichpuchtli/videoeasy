@@ -50,9 +50,10 @@ from .cuteval import pick_spans
 from .film import Film, load_film
 from .sources import label as sources_label
 from .evalrun import OK, UNCHECKED, ffprobe_duration, fingerprint, refuse_overwrite, source_hash, text_hash, write_manifest
+from .textmodel import text_model, text_url
 
-OLLAMA_URL = "http://localhost:11434"
-OLLAMA_MODEL = "qwen3.8:27b-mtp-q8_0"
+OLLAMA_URL = text_url()        # VIDEOEASY_TEXT_URL overrides (textmodel.py)
+OLLAMA_MODEL = text_model()    # VIDEOEASY_TEXT_MODEL overrides
 WHISPER = "mlx-community/whisper-large-v3-mlx"
 
 

@@ -33,9 +33,10 @@ from .film import Film, load_film
 from .frames import sample_times
 from .sources import drone_prefixes, never_cover, sync_walk
 from .vlm import chat_vision, extract_json
+from .textmodel import text_model, text_url
 
-OLLAMA_URL = "http://localhost:11434"
-OLLAMA_MODEL = "qwen3.8:27b-mtp-q8_0"
+OLLAMA_URL = text_url()        # VIDEOEASY_TEXT_URL overrides (textmodel.py)
+OLLAMA_MODEL = text_model()    # VIDEOEASY_TEXT_MODEL overrides
 VISION_URL = "http://localhost:1234/v1"
 VISION_MODEL = "google/gemma-4-26b-a4b"
 
@@ -124,7 +125,7 @@ def load_catalogue(film: Path, synthesis: str | None = None, profile: Film | Non
         if not meta:
             continue
         cat[sid] = dict(
-            id=sid, source=meta["source_id"], role=meta["role"], in_s=meta["in_s"], out_s=meta["out_s"],
+            id=sid, source=meta["source_id"], source_path=meta.get("source_path"), role=meta["role"], in_s=meta["in_s"], out_s=meta["out_s"],
             duration_s=round(meta["duration_s"], 1), subject=a["subject"], movement=a.get("movement", ""),
             shot_type=a.get("shot_type", ""), mood=a.get("mood", ""), themes=a.get("storytelling_themes", []),
             hold=a.get("hold_seconds"), notes=(a.get("cut_notes") or "")[:NOTES_CHARS], people=a.get("people", ""),

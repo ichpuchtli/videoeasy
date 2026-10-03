@@ -141,6 +141,20 @@ def word_bounds(transcripts: dict, clip: str, in_s: float, out_s: float) -> tupl
 
 
 # --------------------------------------------------------------------- plan
+def inventory_paths(film_root: Path | None) -> dict[str, str]:
+    """Clip id -> source path from the film's ingest inventory (out/inventory.json), {} when there is none."""
+    p = Path(film_root) / "out" / "inventory.json" if film_root else None
+    if not p or not p.exists():
+        return {}
+    inv = json.loads(p.read_text(encoding="utf-8"))
+    return {c["id"]: c["path"] for role in ("aroll", "broll") for c in inv.get(role, []) if c.get("id") and c.get("path")}
+
+
+def pick_source_path(pick: dict, clip: str, film_cfg: dict, inv_paths: dict[str, str]) -> str:
+    """The audio pick's source: the path the cut carries, else the inventory's, else `<aroll_dir>/<clip>.MOV`."""
+    return pick.get("source_path") or inv_paths.get(clip) or str(Path(film_cfg["aroll_dir"]) / f"{clip}.MOV")
+
+
 def plan(cut: dict, transcripts: dict, profile: Film | None = None, tier: int = 1,
          measure=None, mono_of=None) -> dict:
     """Frame-exact placement. `measure(path, in_s, out_s, mono) -> (LUFS, peak)`
@@ -148,6 +162,7 @@ def plan(cut: dict, transcripts: dict, profile: Film | None = None, tier: int = 
     tested without ffmpeg; the defaults measure the source. `profile` (film.py)
     gives the A-roll folder, the drone sources and the placeholder cards."""
     profile = profile or load_film(None)
+    inv_paths = inventory_paths(profile.root)
     film_cfg = profile.layin
     cards = set((film_cfg.get("placeholders") or {}).values())
     mono_cache: dict[str, bool] = {}
@@ -172,7 +187,7 @@ def plan(cut: dict, transcripts: dict, profile: Film | None = None, tier: int = 
         cursor = t
         for j, a in picks:
             clip = base_clip(a["clip"])
-            path = a.get("source_path") or str(Path(film_cfg["aroll_dir"]) / f"{clip}.MOV")
+            path = pick_source_path(a, clip, film_cfg, inv_paths)
             mono = mono_of(clip, path)
             I, P = measure(path, a["in_s"], a["out_s"], mono)
             head_room, tail_room = word_bounds(transcripts, clip, a["in_s"], a["out_s"])

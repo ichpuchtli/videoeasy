@@ -1,9 +1,16 @@
 # User guide
 
 How to take a film from raw footage to a story-room conversation, a measured
-cut and a Resolve timeline.
+cut and a Resolve timeline. For an event shoot with a shot list and many
+short deliverables, read this first and then
+[event-projects.md](event-projects.md).
 
 ## 1. Requirements
+
+Setting up a new machine, with memory and disk guidance and a check after
+every step, is covered in [setup.md](setup.md). Once it's set up,
+`uv run videoeasy doctor` re-checks the machine without any config. In
+short:
 
 - macOS on Apple Silicon (mlx-whisper and the MLX model builds are
   Apple-only).

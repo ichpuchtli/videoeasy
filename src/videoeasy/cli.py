@@ -107,6 +107,14 @@ def check(config: Path = CONFIG_OPT, audit: bool = typer.Option(False, "--audit"
 
 
 @app.command()
+def doctor(config: Path = typer.Option(None, "--config", "-c", help="optional: take the vision model and URL from this config")):
+    """Check this machine can run videoeasy: platform, ffmpeg, uv, LM Studio and the vision model's window,
+    Ollama, mlx-whisper, Resolve, disk. Needs no film; run it first on a new machine."""
+    from . import doctor as doctor_mod
+    raise typer.Exit(doctor_mod.main(config))
+
+
+@app.command()
 def probe(config: Path = CONFIG_OPT):
     """Inventory all source files (duration, fps, timecode)."""
     from . import probe as stage

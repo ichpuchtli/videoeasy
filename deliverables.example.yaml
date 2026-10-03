@@ -1,0 +1,179 @@
+# An event project's deliverables: copy to data/projects/<project>/deliverables.yaml.
+# It lives with the project's data, never in the repository. This example is a
+# fictional three-day leadership retreat. Check it with:
+#   python -m videoeasy.deliverables validate --project data/projects/<project>
+# Quote every time ("07:30"): unquoted, YAML reads 07:30 as a base-60 number.
+
+project: "Leadership Retreat 2026"
+client: "Example Organisation"
+timezone: "Australia/Sydney"   # zoneinfo name; camera clocks are read in this zone (daylight saving handled)
+
+days:
+  day1: 2026-03-13
+  day2: 2026-03-14
+  day3: 2026-03-15
+
+# Which camera recorded a clip: `prefix` (file name starts with, case-insensitive),
+# `path_contains` (case-insensitive substring of the clip's source path), or both
+# (both must hold). First match wins. Two operators on the same camera brand
+# write the same file prefix, so keep each operator's cards in their own folder
+# and tell them apart by path, as A cam and B cam do here.
+#
+# clock: how to read the camera's time
+#   creation_time_utc    the container's creation_time is true UTC
+#   creation_time_local  the camera wrote local wall-clock time and labelled it UTC (common on drones and action cams)
+#   timecode             the start timecode is time of day (jam-synced); the date comes from creation_time
+# clock_offset_s: seconds ADDED to the camera's reading to get true local time. Measure it:
+#   `clocks` lists each camera's first and last clip per day against the schedule; one
+#   moment visible on two cameras gives the exact difference.
+# stamp: start (default) or end, for a camera that stamps the end of a recording.
+cameras:
+  - {name: "A cam", prefix: MVI_, path_contains: "/op1/", operator: "Operator 1", clock: creation_time_utc}
+  - {name: "B cam", prefix: MVI_, path_contains: "/op2/", operator: "Operator 2", clock: creation_time_local}
+  - {name: "Drone", prefix: DJI_, operator: "Operator 2", clock: creation_time_local, clock_offset_s: -3600,
+     notes: "clock left on the previous season's daylight-saving time; measured against A cam at the opening circle"}
+  - {name: "Recorder", prefix: REC, operator: "Recordist", clock: timecode}
+
+people:
+  - {id: host-1, name: "Host 1", role: host}
+  - {id: host-2, name: "Host 2", role: host}
+  - {id: fac-a, name: "Facilitator A", role: facilitator}
+  - {id: fac-b, name: "Facilitator B", role: facilitator}
+  - {id: fac-c, name: "Facilitator C", role: facilitator}
+  - {id: fac-d, name: "Facilitator D", role: facilitator}
+
+# The editor's b-roll vocabulary: the bins of the b-roll package and the words
+# a register pass may use. A small fixed list the editor chose, not generic
+# emotion categories.
+registers: [anticipation, focus, laughter, effort, stillness, solidarity, celebration, leadership]
+
+# The schedule. `end` is optional: a session without one runs to the next later
+# start that day (a parallel session on other cameras does not end it), else
+# to midnight. `capture` lines are plain text, or owned by one operator with
+# the deliverable types and registers that operator's clips there feed.
+# Sessions may overlap only when both list `cameras` (by name) and share none.
+sessions:
+  - id: d1-arrival
+    day: day1
+    start: "09:00"
+    end: "12:00"
+    title: "Arrival"
+    capture:
+      - {operator: "Operator 1", text: "4 x before testimonials, Host 1 interviewing; write each name down", feeds: [before-after-testimonial]}
+      - {operator: "Operator 2", text: "arrival b-roll", registers: [anticipation]}
+    registers: [anticipation]
+
+  - id: d1-opening
+    day: day1
+    start: "13:00"
+    end: "14:30"
+    title: "Opening circle"
+    capture:
+      - {operator: "Operator 1", text: "follow Host 1 and Host 2 for leadership b-roll", registers: [leadership]}
+      - {operator: "Operator 2", text: "drone: the group gathered in the circle", registers: [solidarity]}
+    feeds: [broll-package]
+    people: [host-1, host-2]
+
+  # Two operators, two jobs in one session: A cam's clips feed the feature,
+  # B cam's the participant interviews. `assign` gives each clip the feeds and
+  # registers of its own operator's line.
+  - id: d1-workshop-1
+    day: day1
+    start: "15:00"
+    end: "17:00"
+    title: "Workshop: Facilitator A"
+    capture:
+      - {operator: "Operator 1", text: "60-90 s feature: Facilitator A to the group, b-roll, to camera, one testimonial at the end", feeds: [facilitator-feature], registers: [focus]}
+      - {operator: "Operator 2", text: "2 x participant before/after, Host 2 interviewing", feeds: [participant-before-after], registers: [laughter, focus]}
+      - "both: register b-roll (focus, laughter)"
+    registers: [focus, laughter]
+    people: [fac-a]
+
+  - id: d1-keynote
+    day: day1
+    start: "19:00"
+    end: "21:00"
+    title: "Keynote: Facilitator B"
+    capture:
+      - {operator: "Recordist", text: "static camera and audio, the full keynote", feeds: [session-recording]}
+      - {operator: "Operator 1", text: "60-90 s feature: Facilitator B to the room and to camera", feeds: [facilitator-feature]}
+    people: [fac-b]
+
+  # Parallel tracks on disjoint cameras: A cam is in Track A, B cam and the drone in Track B.
+  - id: d2-track-a
+    day: day2
+    start: "08:00"
+    end: "10:30"
+    title: "Track A: Facilitator C"
+    cameras: ["A cam"]
+    capture:
+      - {operator: "Operator 1", text: "60-90 s feature: Facilitator C", feeds: [facilitator-feature]}
+    registers: [effort, focus]
+    people: [fac-c]
+
+  - id: d2-track-b
+    day: day2
+    start: "08:00"
+    end: "10:30"
+    title: "Track B: Facilitator D"
+    cameras: ["B cam", "Drone"]
+    capture:
+      - {operator: "Operator 2", text: "2 x participant before/after, Host 2 interviewing; drone of the outdoor exercise", feeds: [participant-before-after]}
+    registers: [stillness]
+    people: [fac-d]
+
+  - id: d2-panel
+    day: day2
+    start: "14:00"
+    end: "15:30"
+    title: "Panel"
+    capture:
+      - {operator: "Recordist", text: "static camera and audio, the full panel", feeds: [session-recording]}
+      - {operator: "Operator 1", text: "60-90 s feature: Facilitator D on the panel", feeds: [facilitator-feature]}
+
+  - id: d2-free
+    day: day2
+    start: "16:00"
+    end: "18:00"
+    title: "Free time"
+    capture:
+      - {operator: "Operator 1", text: "general testimonials, Host 1 interviewing", feeds: [general-testimonial]}
+      - {operator: "Operator 2", text: "register b-roll", registers: [laughter, solidarity]}
+
+  - id: d3-closing
+    day: day3
+    start: "09:00"
+    end: "11:00"
+    title: "Closing circle"
+    capture: ["both: leadership and register b-roll"]
+    registers: [solidarity, celebration, leadership]
+    feeds: [broll-package]
+    people: [host-1, host-2]
+
+  - id: d3-lunch
+    day: day3
+    start: "12:00"
+    end: "14:00"
+    title: "Celebration lunch"
+    capture:
+      - {operator: "Operator 1", text: "4 x after testimonials, the same people as at Arrival", feeds: [before-after-testimonial]}
+      - {operator: "Operator 2", text: "high-energy testimonials", feeds: [general-testimonial], registers: [celebration]}
+
+# What gets delivered. `scope` names who owns the type (status --scope filters
+# on it); `template` is the intended structure, in order, for the editor and the
+# story room; `includes` is what "done" means for each item.
+deliverable_types:
+  - {id: facilitator-feature, title: "Facilitator feature clips", count: 4, duration_s: [60, 90],
+     template: [facilitator_to_group, broll, facilitator_to_camera, testimonial], scope: [editor], includes: [edit, grade, mix]}
+  - {id: participant-before-after, title: "Participant before/after videos", count: 4, duration_s: [45, 90],
+     template: [before_interview, broll, after_interview], scope: [editor], includes: [edit, grade, mix]}
+  - {id: before-after-testimonial, title: "Before/after testimonials", count: 4,
+     template: [arrival_interview, after_interview], scope: [editor], includes: [edit, grade, mix],
+     notes: "pair each arrival interview with the same person's lunch follow-up"}
+  - {id: general-testimonial, title: "General testimonials", count: 6, duration_s: [20, 60],
+     template: [testimonial], scope: [editor], includes: [edit, grade, mix]}
+  - {id: broll-package, title: "B-roll package", count: 1,
+     template: [register_bins, leadership, drone], scope: [editor], includes: [grade, organise]}
+  - {id: session-recording, title: "Full session recordings", count: 2,
+     template: [full_session], scope: [recordist], includes: [sync, light edit],
+     notes: "not the editor's scope: status --scope editor leaves it out"}
