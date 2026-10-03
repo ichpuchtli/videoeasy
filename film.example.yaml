@@ -1,0 +1,73 @@
+# One film's profile. Copy to data/films/<film>/film.yaml: it lives with the
+# film's own data, never in the repository. Every key is optional; a missing
+# file or key falls back to the generic defaults in src/videoeasy/film.py.
+
+name: "My film"   # timeline names and report titles
+
+# One paragraph: what the film is and the register it is cut in. It goes into
+# the annotation prompt and the B-roll proposer's prompt. Describe the register;
+# never write example phrases for the metaphor or theme fields, because the
+# vision model repeats them verbatim across shots.
+context: >-
+  A short, quiet documentary about a family boatbuilding workshop, cut in a
+  warm observational register: the picture shows what the speaker names, and
+  a personal moment stays on the speaker's face.
+
+# Recording contexts. A role decides the scorer's rule for an uncovered
+# stretch (to_camera: a person addressing the audience), how the story check
+# labels a pick, whether its units may ever be cover (never_cover: the
+# proposer cannot cover a pick with its own A-roll), whether a beat of it is
+# sync sound on the move (sync_walk: never covered by another take of the same
+# kind) and which units are drone footage (drone: measured by moves.py).
+roles:
+  sitdown:   {label: "sit-down interview two-shot", never_cover: true}
+  presenter: {label: "presenter to camera", to_camera: true, never_cover: true}
+  explainer: {label: "explainer to camera and at work", to_camera: true}
+  walk:      {label: "walk-and-talk, sync sound", sync_walk: true}
+  drone:     {label: "drone", drone: true}
+default_role: walk       # anything not matched below
+
+clips:                   # exact base clip names (windows like C0001_w03 follow their clip)
+  C0001: sitdown
+  C0101: presenter
+  C0102: presenter
+prefixes:                # first match wins
+  - [CAMB, explainer]
+  - [DJI_, drone]
+
+# Words the transcriber gets wrong: intended spelling -> heard variants.
+# Names, species, place names and jargon. Spelling conventions (metres/meters)
+# are built in.
+aliases:
+  rowan: [rohan]
+  caulking: [corking, cauking]
+# Name tokens: an edit on one changes who is meant, so the speech check flags it
+# whatever the coverage, and the fuzzy matcher never touches it.
+names: [rowan]
+
+# Optional: the story check's film-specific questions.
+story:
+  voices:                # group -> who speaks in that voice; the model estimates seconds per group
+    portrait: "the owner"
+    method: "the apprentice and the explainer"
+  voices_question: "does the film stay the owner's story with method as a strand"
+  questions:             # key -> question as asked (say the word limit)
+    chapter_shape: "does chapter one end on the launch and chapter two carry the method? at most 40 words"
+
+# DaVinci Resolve lay-in (videoeasy.layin). Relative paths resolve against the film directory.
+layin:
+  project: "My Resolve project"
+  bin: [Films, "My film"]                 # media-pool path of the film's bin
+  clip_bins: [Aroll, Broll, Drone, AI Drafts]
+  drafts_bin: AI Drafts                   # where generated timelines go
+  grades:                                 # per timeline item, first filename-prefix match wins
+    - {name: log, match: C0, lut: /path/to/LUTs/camera_log_to_final_look.cube}
+    - {name: log_b, match: CAMB, lut: /path/to/LUTs/camera_b_log_to_final_look.cube}
+    - {name: drone, match: DJI_, cdl: {NodeIndex: 1, Slope: "1.08 1.08 1.08", Offset: "-0.03 -0.03 -0.03", Power: "1.0 1.0 1.0", Saturation: 1.9}}
+  placeholders:                           # keyword in the placeholder text -> rendered card file; checked in this order
+    before: ph01_before_photos.mov
+    archive: ph02_archive_inserts.mov
+  render_dir: editorial/renders
+  grade_trims: editorial/grade-trims.json # per-shot exposure trims (CDL offset before the LUT), measured on the render
+  render_preset: "YouTube - 1080p"
+  aroll_dir: inputs/aroll

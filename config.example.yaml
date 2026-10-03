@@ -1,0 +1,92 @@
+# videoeasy pipeline configuration (one per film: copy to config.<film>.yaml)
+#
+# Paths are absolute or relative to this file. Footage is read, never written.
+paths:
+  aroll_dir: data/films/my-film/inputs/aroll   # sit-down conversation, direct-to-camera, candid moments
+  broll_dir: data/films/my-film/inputs/broll
+  selects_docx: data/films/my-film/editorial/transcript-selects.docx   # Google Doc export with highlights/shading/comments
+  # draft_txt: data/films/my-film/editorial/draft-radio-cut.txt        # optional: the editor's own radio-cut attempt
+  work_dir: data/films/my-film/work            # frames, contact sheets (regenerable)
+  out_dir: data/films/my-film/out              # json artifacts + bible (the product)
+
+# The film's profile (register line, recording roles, ASR aliases, Resolve
+# constants): see film.example.yaml. Optional: when absent, a film.yaml in the
+# parent of out_dir is used if there is one, else generic defaults.
+# film_dir: data/films/my-film
+
+# Every frame the vision model sees is graded first — a VLM reading flat log
+# footage misjudges mood and color on every shot. Sources differ, so grading
+# is per-profile: files are matched (case-insensitive substring of filename)
+# top to bottom; no match -> default profile. Grade to the intended final
+# look, so annotations describe the film as it will actually feel.
+grade:
+  default: log
+  profiles:
+    log:      # camera log -> the intended final look
+      lut: /path/to/LUTs/camera_log_to_final_look.cube
+    log_b:    # a second camera with a different log curve
+      lut: /path/to/LUTs/camera_b_log_to_final_look.cube
+    drone:    # a flat but non-log profile: a saturation/contrast lift
+      filters: eq=saturation=1.2:contrast=1.2
+  match:
+    - pattern: DJI
+      profile: drone
+    - pattern: CAMB
+      profile: log_b
+
+models:
+  # Vision annotation runs through LM Studio's OpenAI-compatible server:
+  #   lms load google/gemma-4-26b-a4b --context-length 16384 && lms server start
+  # The default 4096-token window truncates answers on busy shots (`check` flags it).
+  # Do not point this at Ollama without re-running `videoeasy check`: Ollama's
+  # MLX backend has silently dropped images while the model described a shot
+  # it never saw.
+  vision: google/gemma-4-26b-a4b
+  vision_url: http://localhost:1234/v1
+  whisper: mlx-community/whisper-large-v3-mlx
+
+shots:
+  # AdaptiveDetector threshold; log footage is low-contrast so cuts can be missed.
+  # Lower = more sensitive. Verify shot boundaries on the contact sheets after first run.
+  adaptive_threshold: 2.5
+  min_shot_seconds: 1.5
+
+frames:
+  per_shot: 8                      # evenly sampled across the shot
+  max_px: 1024                     # longest edge sent to the VLM
+
+motion:
+  sample_fps: 2.0                  # frame-pair sampling rate for optical flow
+  downscale_width: 320
+
+# Long takes are windowed into searchable moments: four samples spread across
+# a six-minute walk-and-talk describe none of it honestly. Any take at or over
+# min_source_seconds is cut into windows that each get their own graded
+# samples and their own tag. A window edge is an INDEX, not a claimed cut: it
+# lands on a real pause in the transcript where one is in reach, and on an
+# even division where none is.
+segments:
+  min_source_seconds: 60           # shorter takes stay exactly as they are
+  target_seconds: 45               # wanted window length
+  max_seconds: 90                  # no window longer than this
+  min_seconds: 12                  # no window shorter than this
+  pause_seconds: 1.0               # transcript silence usable as a boundary
+  frames_per_segment: 6            # ~1 graded sample per 7s of a target window
+  # A locked-off sit-down whose framing never changes: windowed for transcript
+  # search, but ~80 near-identical frame sets sent to the VLM would fill the
+  # bible with interchangeable tags. Tag any one window by name with
+  # `annotate --only <source>_w31`.
+  index_only_sources: []
+
+# Optional: DJI Mic recordings (Left/ and Right/ folders of DJI_<nn>_<date>_<time>.WAV)
+# for `videoeasy audiosync`; transcribe prefers verified mic audio over camera scratch audio.
+# audiosync:
+#   mic_root: /path/to/DJI_MIC
+
+# Optional: where and when the footage was shot. BirdNET's location model
+# narrows the species list to what is plausible there in that week (videoeasy.birds).
+# location:
+#   place: "Example valley"
+#   lat: -33.87
+#   lon: 151.21
+#   shoot_date: "2025-01-01"

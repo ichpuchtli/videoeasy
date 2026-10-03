@@ -1,0 +1,41 @@
+# Film material, artifacts and editorial state are private and never committed.
+# Code reads them from data/films/<film>/ (or wherever config.<film>.yaml points).
+data/
+*.drp
+*.webarchive
+
+# Per-film configs and profiles carry machine paths and film specifics.
+# Commit only the *.example.* versions.
+config.*.yaml
+!config.example.yaml
+config.yaml
+film.yaml
+.mcp.json
+
+# Media and model outputs that should never land in git even outside data/
+*.mov
+*.MOV
+*.mp4
+*.mxf
+*.wav
+*.cube
+*.jpg
+*.jpeg
+*.png
+!docs/img/*.png
+!docs/img/*.jpg
+
+# Python / tooling
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Local agent settings
+.claude/settings.local.json
+
+# macOS
+.DS_Store

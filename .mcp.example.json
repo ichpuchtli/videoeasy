@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "davinci-resolve": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${HOME}/.claude/mcp-servers/davinci-resolve/server/index.js"],
+      "env": {}
+    }
+  }
+}
