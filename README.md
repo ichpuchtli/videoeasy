@@ -80,6 +80,7 @@ produced it.
 | Bird calls heard (optional `birds` extra) | BirdNET acoustic 2.4 + geo 2.4 | TFLite (LiteRT) | | `birdnet` 1.1.1 | location and week from the config |
 | Plant species on screen (optional `species` extra) | BioCLIP 2 | | | `pybioclip` 2.1.6 | advisory only |
 | Story work over the footage bible (text only) | Claude, in Claude Code | frontier, hosted | | | receives text only, never pixels or audio; not pinned to one version |
+| Face identity (optional) | InsightFace [`buffalo_l`](https://github.com/deepinsight/insightface/tree/master/python-package) (SCRFD detection, ArcFace `w600k_r50`) | release v0.7 zip, sha256 `80ffe37d…`, downloaded by `identity setup`, never in this repository | 288 MB | `insightface` 1.0.1 + onnxruntime 1.28 (CPU) in the PEP 723 worker's own environment | **non-commercial research use only** (InsightFace's licence for its pretrained models); a model of your own can answer instead ([identity.md](docs/identity.md)) |
 | Everything measured | ffmpeg 8.1, OpenCV | | | | `signalstats`, `blackdetect`, `silencedetect`, `ebur128`, `loudnorm`, Lucas–Kanade + RANSAC |
 
 Reference machine: Apple M5 Max, 128 GB unified memory, macOS 26.6.2. The
@@ -144,6 +145,8 @@ list, continue with [docs/event-projects.md](docs/event-projects.md).
 | [docs/user-guide.md](docs/user-guide.md) | setup, config and film profile, `intent.json`, commands, troubleshooting |
 | [docs/talks.md](docs/talks.md) | long talks on lav recorders: 32-bit float handling, beats, hooks, bites, cover briefs, selects |
 | [docs/event-projects.md](docs/event-projects.md) | event shoots: shot list → `deliverables.yaml`, clocks, session assignment, per-deliverable workflows, tracking |
+| [docs/register.md](docs/register.md) | facial register moments: face cues measured, sounds heard, faces seen by the local vision model, fused in code, calibrated blind |
+| [docs/identity.md](docs/identity.md) | face identity: which tracks are one person (InsightFace, downloaded at setup), the editor confirms; licences; bring-your-own-model files |
 | [docs/sibling-project.md](docs/sibling-project.md) | design for a sibling project: mood of what's displayed, sound bites in long talks, related-dialogue search |
 | [docs/evidence-audits.md](docs/evidence-audits.md) | the opt-in frame evidence and tag consistency audit |
 | [AGENTS.md](AGENTS.md) | instructions for coding agents (`CLAUDE.md` is a symlink to it) |
@@ -156,7 +159,8 @@ live under `data/` (films in `data/films/`, event projects in
 `data/projects/`), which is never committed. So are the per-film configs
 (`config.<film>.yaml`) and profiles (`film.yaml`). The repository contains
 code, generic examples and documentation only. Nothing here sends media to a
-hosted model. The frontier model receives text.
+hosted model. The frontier model receives text. Face identity runs locally,
+and only links the editor confirms name anyone ([identity.md](docs/identity.md)).
 
 ## License
 

@@ -232,9 +232,9 @@ How much of each job the repository does today:
 |---|---|---|---|---|
 | Testimonials | transcription with word times; edge room; ASR recheck | bite proposals from transcripts | rating and choosing bites; final trim | — |
 | Long talks (lav recordings) | float gain staging; word times; edge room vs noise floor; off-mic flags (`videoeasy.talks`) | beats, hooks, bites, closers with cover briefs; standalone check | rating; calibration; picture sync | voice/face register; diarization |
-| Before/after pairs | session times | pairing proposals from names spoken and session times | confirming every pair | face recognition (deliberately absent) |
+| Before/after pairs | session times; face embeddings per track (`identity run`: InsightFace downloaded at setup, its own licence, [identity.md](identity.md)) | pairing proposals from names spoken and session times; identity proposals (tracks grouped, or matched to reference photos) | confirming every pair and every identity link | — |
 | Speaker / facilitator features | the whole eval loop's measurements | radio cut, cover proposals | approving the radio cut; review | — |
-| B-roll package by mood | session mood candidates; shake; drone moves; grading | shortlists from annotations | confirming each label; final selection | mood classification constrained to session candidates |
+| B-roll package by mood | session mood candidates; shake; drone moves; grading; face cues and heard sounds per clip (`faces`, `sounds`) | shortlists from annotations; facial register moments read per face and fused in code (`register`, [register.md](register.md)), provisional until calibrated | blind calibration labels; confirming each label and each identity link; final selection | register-aware placement (one person's confirmed moments: `register find --person`) |
 | Session recordings | transcription for search | finding passages | the recording edit itself | — |
 | Delivery and tracking | loudness master with manifest; status against files | status reports | sign-off | — |
 

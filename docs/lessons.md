@@ -232,6 +232,20 @@ DaVinci Resolve API lessons have their own document:
 - Two placeholder-card stretches hit a 3,000-token budget on every attempt.
   They stay `unchecked`. They are never scored by fiat.
 
+### 2.12 A definition's shape becomes the answer's shape
+
+- A closed vocabulary was given as `term: definition`, and one definition
+  itself began with a gloss word and a colon ("effort: straining: teeth
+  gritted …"). Each time the model chose that term it answered
+  `"effort: straining"`. The validator rightly marked it `invalid`, so the
+  register was unreachable: 4 of the first 300 readings, all on the
+  footage where that register mattered most. The other terms were fine.
+- **Rule.** Definitions start with the description itself, never with a
+  gloss word and a colon, and the prompt asks for the single term as written.
+  Read the `invalid` reasons as a list: one repeated reason is a prompt bug,
+  not model noise. Never repair such an answer into a label. Fix the prompt
+  and re-read.
+
 ---
 
 ## 3. Sampling, windows and grading

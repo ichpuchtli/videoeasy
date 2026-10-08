@@ -35,6 +35,11 @@ uv run python -m videoeasy.deliver --film data/films/<film> --render editorial/r
 uv run python -m videoeasy.steadiness --config ...   # camera shake per catalogue unit → out/steadiness.json
 uv run python -m videoeasy.moves --config ...        # drone moves and which are clean → out/moves.json
 uv run --extra birds python -m videoeasy.birds --config ...   # BirdNET over source audio → out/birds.json (heard, not seen)
+uv run python -m videoeasy.faces --config ...            # face tracks + blendshape cues per source (pinned MediaPipe worker env) → out/faces/
+uv run python -m videoeasy.sounds --config ...           # laughter, crying, shouts, cheers heard per source (YAMNet) → out/sounds.json
+uv run python -m videoeasy.register {moments|read|map|find|review|showcase|calibrate} --config ...   # facial register moments: measured, heard, seen, fused (docs/register.md)
+uv run python -m videoeasy.identity setup                                          # downloads InsightFace buffalo_l (pinned hash; NON-COMMERCIAL model licence, never in the repo) + its worker env
+uv run python -m videoeasy.identity {run|review|confirm|export|import} --config ...  # which face tracks are one person: proposals, then the editor confirms (docs/identity.md)
 uv run python -m unittest discover tests             # invariants: no models, no footage, no Resolve
 ```
 

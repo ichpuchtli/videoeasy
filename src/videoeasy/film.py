@@ -26,6 +26,9 @@ runs on a new film before anyone has written a profile.
       voices: {portrait: "who carries the film", method: "who explains the method"}
       voices_question: "is the balance of voices what the spine asks for"
       questions: {chapter_shape: "does chapter one end where the spine says? at most 40 words"}
+    face_registers:                    # register.py's vocabulary (else its generic default); a definition per term,
+      grief: "crying or on the edge of tears: ..."   # what the face visibly does, never an example phrase
+      awe: {definition: "...", cues: [eye_wide, brow_outer_up], heard: []}   # cues/heard: what may support it
     layin:
       project: "Resolve project name"
       bin: [Films, "My film"]
@@ -100,6 +103,7 @@ class Film:
     names: set[str] = field(default_factory=set)
     story: dict = field(default_factory=dict)
     layin: dict = field(default_factory=lambda: dict(DEFAULT_LAYIN))
+    face_registers: dict[str, dict] = field(default_factory=dict)   # term -> {definition, cues?, heard?}; empty = register.py's default
     source_path: Path | None = None   # the film.yaml these values came from; None = generic defaults
 
     def role_of(self, base: str) -> Role:
@@ -146,8 +150,21 @@ def from_dict(raw: dict, root: Path | None = None, source_path: Path | None = No
         names={str(n).lower() for n in (raw.get("names") or [])},
         story=dict(raw.get("story") or {}),
         layin=layin,
+        face_registers=_face_registers(raw.get("face_registers")),
         source_path=source_path,
     )
+
+
+def _face_registers(raw) -> dict[str, dict]:
+    out = {}
+    for term, spec in (raw or {}).items():
+        spec = {"definition": spec} if isinstance(spec, str) else dict(spec or {})
+        unknown = set(spec) - {"definition", "cues", "heard"}
+        if unknown or not str(spec.get("definition") or "").strip():
+            raise ValueError(f"film.yaml: face_registers.{term} needs a definition (and only definition/cues/heard), got {sorted(spec)}")
+        out[str(term).strip().lower()] = dict(definition=" ".join(str(spec["definition"]).split()),
+                                             **{k: [str(v) for v in spec[k]] for k in ("cues", "heard") if k in spec})
+    return out
 
 
 def project_profile(item_dir: Path) -> Path | None:

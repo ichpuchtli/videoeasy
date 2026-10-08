@@ -201,6 +201,26 @@ repository.
 
 check: in Claude Code, `/mcp` lists `davinci-resolve` as connected.
 
+### Optional: face identity (event projects)
+
+Linking face tracks to people (a participant's before/after reel) uses
+InsightFace's `buffalo_l` models. `setup` downloads them from InsightFace's
+own release (288 MB, checked against a pinned sha256) into
+`~/.cache/videoeasy/models/insightface`. It also builds the worker
+environment and loads the model once:
+
+```bash
+uv run python -m videoeasy.identity setup
+```
+
+The models are not part of videoeasy, which is MIT. **InsightFace licenses
+its pretrained models for non-commercial research only.** `setup` prints
+this, and every identity manifest records it. For other work, use a model
+whose licence allows it through your own tool: export the request, then
+import your tool's answer ([identity.md](identity.md)).
+
+check: `setup` ends with `model ready: …`.
+
 ## 3. Check the whole chain
 
 ### `videoeasy doctor` (no config needed)
